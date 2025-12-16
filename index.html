@@ -9,7 +9,6 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-
 body{
   font-family: Arial, sans-serif;
   background:#f2f2f2;
@@ -18,7 +17,6 @@ body{
   justify-content:center;
   align-items:center;
 }
-
 .success{
   position:fixed;
   top:15px;
@@ -32,7 +30,6 @@ body{
   display:none;
   z-index:1000;
 }
-
 .box{
   background:#fff;
   width:100%;
@@ -42,9 +39,7 @@ body{
   box-shadow:0 4px 12px rgba(0,0,0,0.1);
   text-align:center;
 }
-
 h2{margin-bottom:20px;color:#333;}
-
 input,button{
   width:100%;
   padding:10px;
@@ -52,18 +47,14 @@ input,button{
   border-radius:5px;
   font-size:14px;
 }
-
 input{border:1px solid #ccc;}
-
 button{
   background:#ff9acb;
   color:#fff;
   border:none;
   cursor:pointer;
 }
-
 button:hover{opacity:0.9;}
-
 .error{
   display:none;
   background:#ffe5f0;
@@ -73,18 +64,15 @@ button:hover{opacity:0.9;}
   font-size:13px;
   margin-top:8px;
 }
-
 .link{
   margin-top:12px;
   font-size:13px;
 }
-
 .link a{
   color:#ff9acb;
   text-decoration:none;
   font-weight:bold;
 }
-
 .link a:hover{text-decoration:underline;}
 </style>
 </head>
@@ -101,7 +89,7 @@ button:hover{opacity:0.9;}
   <button onclick="login()">Login</button>
   <div id="loginError" class="error"></div>
   <div class="link">
-    No account? <a href="javascript:void(0)" onclick="showRegister()">Register</a>
+    No account? <a href="#" onclick="showRegister()">Register</a>
   </div>
 </div>
 
@@ -115,7 +103,7 @@ button:hover{opacity:0.9;}
   <button onclick="register()">Create Account</button>
   <div id="registerError" class="error"></div>
   <div class="link">
-    Have an account? <a href="javascript:void(0)" onclick="showLogin()">Login</a>
+    Have an account? <a href="#" onclick="showLogin()">Login</a>
   </div>
 </div>
 
@@ -130,7 +118,9 @@ const supabaseClient = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
-// UI helpers
+let isRegistering = false;
+
+/* UI helpers */
 function showRegister(){
   loginBox.style.display="none";
   registerBox.style.display="block";
@@ -148,9 +138,10 @@ function hideMsg(el){
   el.style.display="none";
 }
 
-// REGISTER (no auto-login)
+/* REGISTER (NO AUTO LOGIN) */
 async function register(){
   hideMsg(registerError);
+  isRegistering = true;
 
   const fullname = newFullname.value.trim();
   const phone = newPhone.value.trim();
@@ -158,6 +149,7 @@ async function register(){
   const password = newPass.value;
 
   if(!fullname || !phone || !email || !password){
+    isRegistering = false;
     return showMsg(registerError,"Fill all fields");
   }
 
@@ -167,17 +159,19 @@ async function register(){
     options:{ data:{ fullname, phone } }
   });
 
-  if(error) return showMsg(registerError,error.message);
+  if(error){
+    isRegistering = false;
+    return showMsg(registerError,error.message);
+  }
 
   if(data.user){
     await supabaseClient.from("profiles").insert({
-      id:data.user.id,
+      id: data.user.id,
       fullname,
       phone,
       email
     });
 
-    // IMPORTANT: prevent auto-login
     await supabaseClient.auth.signOut();
   }
 
@@ -185,10 +179,11 @@ async function register(){
   setTimeout(()=>{
     successMessage.style.display="none";
     showLogin();
+    isRegistering = false;
   },2000);
 }
 
-// LOGIN
+/* LOGIN */
 async function login(){
   hideMsg(loginError);
 
@@ -203,9 +198,9 @@ async function login(){
   setTimeout(()=>location.href=HOME_PAGE,1000);
 }
 
-// Redirect only when user actually logs in
+/* REDIRECT ONLY ON REAL LOGIN */
 supabaseClient.auth.onAuthStateChange((event, session)=>{
-  if(event === "SIGNED_IN" && session){
+  if(event === "SIGNED_IN" && session && !isRegistering){
     location.href = HOME_PAGE;
   }
 });

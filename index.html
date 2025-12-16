@@ -108,6 +108,7 @@ button:hover{opacity:0.9;}
 </div>
 
 <script>
+/* ===== SUPABASE CONFIG ===== */
 const SUPABASE_URL = "https://ilxwqmxqptkhapmvvasm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHdxbXhxcHRraGFwbXZ2YXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4Mzg3NzIsImV4cCI6MjA4MTQxNDc3Mn0.wV4mgUS_6oUsGdUNJRKvL3wewvan4LusbnC2twhYYnw";
 
@@ -118,9 +119,15 @@ const supabaseClient = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
-let isRegistering = false;
+/* ===== CHECK EXISTING SESSION ON LOAD ===== */
+(async () => {
+  const { data } = await supabaseClient.auth.getSession();
+  if (data.session) {
+    location.href = HOME_PAGE;
+  }
+})();
 
-/* UI helpers */
+/* ===== UI HELPERS ===== */
 function showRegister(){
   loginBox.style.display="none";
   registerBox.style.display="block";
@@ -138,10 +145,9 @@ function hideMsg(el){
   el.style.display="none";
 }
 
-/* REGISTER (NO AUTO LOGIN) */
+/* ===== REGISTER (NO AUTO LOGIN) ===== */
 async function register(){
   hideMsg(registerError);
-  isRegistering = true;
 
   const fullname = newFullname.value.trim();
   const phone = newPhone.value.trim();
@@ -149,41 +155,25 @@ async function register(){
   const password = newPass.value;
 
   if(!fullname || !phone || !email || !password){
-    isRegistering = false;
     return showMsg(registerError,"Fill all fields");
   }
 
-  const { data, error } = await supabaseClient.auth.signUp({
+  const { error } = await supabaseClient.auth.signUp({
     email,
     password,
     options:{ data:{ fullname, phone } }
   });
 
-  if(error){
-    isRegistering = false;
-    return showMsg(registerError,error.message);
-  }
-
-  if(data.user){
-    await supabaseClient.from("profiles").insert({
-      id: data.user.id,
-      fullname,
-      phone,
-      email
-    });
-
-    await supabaseClient.auth.signOut();
-  }
+  if(error) return showMsg(registerError,error.message);
 
   showMsg(successMessage,"Account created! Please log in.");
   setTimeout(()=>{
     successMessage.style.display="none";
     showLogin();
-    isRegistering = false;
   },2000);
 }
 
-/* LOGIN */
+/* ===== LOGIN ===== */
 async function login(){
   hideMsg(loginError);
 
@@ -194,16 +184,8 @@ async function login(){
 
   if(error) return showMsg(loginError,error.message);
 
-  showMsg(successMessage,"Login successful!");
-  setTimeout(()=>location.href=HOME_PAGE,1000);
+  location.href = HOME_PAGE;
 }
-
-/* REDIRECT ONLY ON REAL LOGIN */
-supabaseClient.auth.onAuthStateChange((event, session)=>{
-  if(event === "SIGNED_IN" && session && !isRegistering){
-    location.href = HOME_PAGE;
-  }
-});
 </script>
 
 </body>

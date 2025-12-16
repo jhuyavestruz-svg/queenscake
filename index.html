@@ -111,18 +111,15 @@ button:hover{opacity:0.9;}
 /* ===== SUPABASE CONFIG ===== */
 const SUPABASE_URL = "https://ilxwqmxqptkhapmvvasm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHdxbXhxcHRraGFwbXZ2YXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4Mzg3NzIsImV4cCI6MjA4MTQxNDc3Mn0.wV4mgUS_6oUsGdUNJRKvL3wewvan4LusbnC2twhYYnw";
-
 const HOME_PAGE = "https://sites.google.com/view/queenscake/home";
 
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ===== CHECK EXISTING SESSION ON LOAD ===== */
+/* ===== CHECK EXISTING SESSION ON PAGE LOAD ===== */
 (async () => {
   const { data } = await supabaseClient.auth.getSession();
-  if (data.session) {
+  if (data.session && data.session.user) {
+    // Redirect only if a real session exists
     location.href = HOME_PAGE;
   }
 })();

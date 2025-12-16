@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logout</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background:#f5f5f5;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  padding:20px;
+}
+
+.box {
+  max-width:400px;
+  width:100%;
+  background:#ffffff;
+  padding:40px;
+  border-radius:12px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+  animation:slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+h2 {
+  color:#333;
+  margin-bottom:20px;
+  font-size:26px;
+  font-weight:600;
+}
+
+.loading {
+  color:#666;
+  font-size:15px;
+  margin:15px 0;
+}
+
+.message {
+  margin-top:20px;
+  color:#ff99a1;
+  font-weight:600;
+  font-size:15px;
+  min-height:20px;
+}
+
+.button-group {
+  display:flex;
+  gap:12px;
+  margin-top:30px;
+}
+
+button {
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:15px;
+  font-weight:600;
+  transition:all 0.3s ease;
+}
+
+.logout-btn {
+  background:#ff99a1;
+  color:white;
+}
+
+.logout-btn:hover {
+  background:#ff8088;
+  box-shadow:0 6px 18px rgba(255,128,136,0.25);
+}
+
+.cancel-btn {
+  background:#e0e0e0;
+  color:#333;
+}
+
+.cancel-btn:hover {
+  background:#d0d0d0;
+  transform:translateY(-2px);
+}
+
+.hidden {
+  display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <!-- CONFIRM LOGOUT -->
+  <div id="confirmBox">
+    <h2>Logout</h2>
+    <p class="loading">Are you sure you want to logout?</p>
+    <div class="button-group">
+      <button class="logout-btn" onclick="confirmLogout()">Yes, Logout</button>
+      <button class="cancel-btn" onclick="cancelLogout()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- PROCESSING -->
+  <div id="processingBox" class="hidden">
+    <h2>Logging out...</h2>
+    <p class="loading">Please wait while we sign you out.</p>
+    <p class="message" id="message"></p>
+  </div>
+
+</div>
+
+<script>
+// ===== SUPABASE CONFIG (SAME AS LOGIN PAGE) =====
+const SUPABASE_URL = "https://ilxwqmxqptkhapmvvasm.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHdxbXhxcHRraGFwbXZ2YXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4Mzg3NzIsImV4cCI6MjA4MTQxNDc3Mn0.wV4mgUS_6oUsGdUNJRKvL3wewvan4LusbnC2twhYYnw";
+
+const LOGOUT_YES_REDIRECT = "https://sites.google.com/view/queenscakegroup/home";
+const LOGOUT_CANCEL_REDIRECT = "https://sites.google.com/view/queenscake/home";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+// Cancel → back to home without logout
+function cancelLogout() {
+  window.top.location.href = LOGOUT_CANCEL_REDIRECT;
+}
+
+// Confirm → sign out → redirect
+async function confirmLogout() {
+  document.getElementById("confirmBox").classList.add("hidden");
+  document.getElementById("processingBox").classList.remove("hidden");
+
+  const { error } = await supabaseClient.auth.signOut();
+
+  document.getElementById("message").innerText =
+    error ? "Logging out..." : "Successfully logged out!";
+
+  setTimeout(() => {
+    window.top.location.href = LOGOUT_YES_REDIRECT;
+  }, 800);
+}
+</script>
+
+</body>
+</html>

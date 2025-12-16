@@ -8,11 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
+*{margin:0;padding:0;box-sizing:border-box;}
 
 body{
   font-family: Arial, sans-serif;
@@ -23,7 +19,6 @@ body{
   align-items:center;
 }
 
-/* Success message */
 .success{
   position:fixed;
   top:15px;
@@ -38,7 +33,6 @@ body{
   z-index:1000;
 }
 
-/* Main box */
 .box{
   background:#fff;
   width:100%;
@@ -49,13 +43,9 @@ body{
   text-align:center;
 }
 
-h2{
-  margin-bottom:20px;
-  color:#333;
-}
+h2{margin-bottom:20px;color:#333;}
 
-/* Inputs & button */
-input, button{
+input,button{
   width:100%;
   padding:10px;
   margin:8px 0;
@@ -63,9 +53,7 @@ input, button{
   font-size:14px;
 }
 
-input{
-  border:1px solid #ccc;
-}
+input{border:1px solid #ccc;}
 
 button{
   background:#ff9acb;
@@ -74,11 +62,8 @@ button{
   cursor:pointer;
 }
 
-button:hover{
-  opacity:0.9;
-}
+button:hover{opacity:0.9;}
 
-/* Error messages */
 .error{
   display:none;
   background:#ffe5f0;
@@ -89,7 +74,6 @@ button:hover{
   margin-top:8px;
 }
 
-/* Links */
 .link{
   margin-top:12px;
   font-size:13px;
@@ -101,9 +85,7 @@ button:hover{
   font-weight:bold;
 }
 
-.link a:hover{
-  text-decoration:underline;
-}
+.link a:hover{text-decoration:underline;}
 </style>
 </head>
 
@@ -140,6 +122,7 @@ button:hover{
 <script>
 const SUPABASE_URL = "https://ilxwqmxqptkhapmvvasm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHdxbXhxcHRraGFwbXZ2YXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4Mzg3NzIsImV4cCI6MjA4MTQxNDc3Mn0.wV4mgUS_6oUsGdUNJRKvL3wewvan4LusbnC2twhYYnw";
+
 const HOME_PAGE = "https://sites.google.com/view/queenscake/home";
 
 const supabaseClient = supabase.createClient(
@@ -147,6 +130,7 @@ const supabaseClient = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
+// UI helpers
 function showRegister(){
   loginBox.style.display="none";
   registerBox.style.display="block";
@@ -164,15 +148,16 @@ function hideMsg(el){
   el.style.display="none";
 }
 
+// REGISTER (no auto-login)
 async function register(){
   hideMsg(registerError);
 
-  const fullname=newFullname.value.trim();
-  const phone=newPhone.value.trim();
-  const email=newUser.value.trim();
-  const password=newPass.value;
+  const fullname = newFullname.value.trim();
+  const phone = newPhone.value.trim();
+  const email = newUser.value.trim();
+  const password = newPass.value;
 
-  if(!fullname||!phone||!email||!password){
+  if(!fullname || !phone || !email || !password){
     return showMsg(registerError,"Fill all fields");
   }
 
@@ -191,21 +176,25 @@ async function register(){
       phone,
       email
     });
+
+    // IMPORTANT: prevent auto-login
+    await supabaseClient.auth.signOut();
   }
 
-  showMsg(successMessage,"Account created! Check your email.");
+  showMsg(successMessage,"Account created! Please log in.");
   setTimeout(()=>{
     successMessage.style.display="none";
     showLogin();
   },2000);
 }
 
+// LOGIN
 async function login(){
   hideMsg(loginError);
 
   const { error } = await supabaseClient.auth.signInWithPassword({
-    email:loginUser.value,
-    password:loginPass.value
+    email: loginUser.value,
+    password: loginPass.value
   });
 
   if(error) return showMsg(loginError,error.message);
@@ -214,8 +203,11 @@ async function login(){
   setTimeout(()=>location.href=HOME_PAGE,1000);
 }
 
-supabaseClient.auth.onAuthStateChange((event)=>{
-  if(event==="SIGNED_IN") location.href=HOME_PAGE;
+// Redirect only when user actually logs in
+supabaseClient.auth.onAuthStateChange((event, session)=>{
+  if(event === "SIGNED_IN" && session){
+    location.href = HOME_PAGE;
+  }
 });
 </script>
 

@@ -23,13 +23,13 @@ body{
   align-items:center;
 }
 
-/* Success message at top */
+/* Success message */
 .success{
   position:fixed;
   top:15px;
   left:50%;
   transform:translateX(-50%);
-  background:#4caf50;
+  background:#ff9acb;
   color:#fff;
   padding:12px 20px;
   border-radius:6px;
@@ -68,21 +68,21 @@ input{
 }
 
 button{
-  background:#333;
+  background:#ff9acb;
   color:#fff;
   border:none;
   cursor:pointer;
 }
 
 button:hover{
-  background:#000;
+  opacity:0.9;
 }
 
 /* Error messages */
 .error{
   display:none;
-  background:#ffe5e5;
-  color:#c62828;
+  background:#ffe5f0;
+  color:#b0004d;
   padding:8px;
   border-radius:5px;
   font-size:13px;
@@ -96,7 +96,7 @@ button:hover{
 }
 
 .link a{
-  color:#333;
+  color:#ff9acb;
   text-decoration:none;
   font-weight:bold;
 }
@@ -138,7 +138,6 @@ button:hover{
 </div>
 
 <script>
-/* ===== SUPABASE CONFIG ===== */
 const SUPABASE_URL = "https://ilxwqmxqptkhapmvvasm.supabase.co";
 const SUPABASE_ANON_KEY = "YOUR_ANON_KEY_HERE";
 const HOME_PAGE = "https://sites.google.com/view/queenscake/home";
@@ -148,7 +147,6 @@ const supabaseClient = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
-/* ===== UI HELPERS ===== */
 function showRegister(){
   loginBox.style.display="none";
   registerBox.style.display="block";
@@ -166,7 +164,6 @@ function hideMsg(el){
   el.style.display="none";
 }
 
-/* ===== REGISTER ===== */
 async function register(){
   hideMsg(registerError);
 
@@ -203,7 +200,6 @@ async function register(){
   },2000);
 }
 
-/* ===== LOGIN ===== */
 async function login(){
   hideMsg(loginError);
 
@@ -218,7 +214,6 @@ async function login(){
   setTimeout(()=>location.href=HOME_PAGE,1000);
 }
 
-/* ===== AUTO REDIRECT ===== */
 supabaseClient.auth.onAuthStateChange((event)=>{
   if(event==="SIGNED_IN") location.href=HOME_PAGE;
 });

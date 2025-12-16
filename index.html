@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login + Sign Up</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f5f5f5; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .box { max-width:420px; width:100%; background:#fff; padding:40px; border-radius:12px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.08); animation:fadeIn 0.4s; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    h2 { color:#333; margin-bottom:25px; font-size:26px; font-weight:600; }
+    input, button { width:100%; padding:12px; margin:10px 0; border-radius:8px; font-size:15px; }
+    input { border:1.5px solid #ccc; background:#fafafa; }
+    button { background:#ff99a1; color:white; border:none; cursor:pointer; font-weight:600; }
+    button:hover { background:#ff8088; }
+    .error { color:#e74c3c; font-size:13px; padding:8px; background:#fce4e4; border-radius:6px; display:none; }
+    .success { background:#ffb3b9; color:white; padding:12px; margin-bottom:20px; border-radius:8px; display:none; }
+    .link { font-size:14px; color:#666; }
+    .link a { color:#ff99a1; text-decoration:none; font-weight:600; }
+    .link a:hover { color:#ff8088; text-decoration:underline; }
+  </style>
+</head>
+
+<body>
+  <div id="successMessage" class="success"></div>
+
+  <div id="loginBox" class="box">
+    <h2>Login</h2>
+    <input id="loginUser" type="email" placeholder="Email">
+    <input id="loginPass" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="loginError" class="error"></p>
+    <p class="link">No account? <a href="#" onclick="showRegister()">Register</a></p>
+  </div>
+
+  <div id="registerBox" class="box" style="display:none;">
+    <h2>Register</h2>
+    <input id="newFullname" type="text" placeholder="Full Name">
+    <input id="newPhone" type="tel" placeholder="Phone Number">
+    <input id="newUser" type="email" placeholder="Email">
+    <input id="newPass" type="password" placeholder="Password">
+    <button onclick="register()">Create Account</button>
+    <p id="registerError" class="error"></p>
+    <p class="link">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://ilxwqmxqptkhapmvvasm.supabase.co";    
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHdxbXhxcHRraGFwbXZ2YXNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4Mzg3NzIsImV4cCI6MjA4MTQxNDc3Mn0.wV4mgUS_6oUsGdUNJRKvL3wewvan4LusbnC2twhYYnw"; 
+    const HOME_PAGE = "https://sites.google.com/view/queenscake/home";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function showRegister() {
+      document.getElementById("registerBox").style.display = "block";
+      document.getElementById("loginBox").style.display = "none";
+    }
+    function showLogin() {
+      document.getElementById("registerBox").style.display = "none";
+      document.getElementById("loginBox").style.display = "block";
+    }
+    function setLoading(btn, isLoading, text) {
+      btn.disabled = isLoading;
+      btn.innerText = isLoading ? "Please wait..." : text;
+    }
+
+    async function register() {
+      const fullname = document.getElementById("newFullname").value;
+      const phone = document.getElementById("newPhone").value;
+      const email = document.getElementById("newUser").value;
+      const password = document.getElementById("newPass").value;
+      const btn = document.querySelector("#registerBox button");
+      setLoading(btn, true, "Create Account");
+
+      if (!fullname || !phone || !email || !password) {
+        document.getElementById("registerError").innerText = "Fill all fields"; 
+        setLoading(btn, false, "Create Account");
+        return; 
+      }
+
+      const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { fullname, phone } } });
+
+      if (error) {
+        document.getElementById("registerError").innerText = error.message; 
+        setLoading(btn, false, "Create Account"); 
+        return; 
+      }
+
+      await supabaseClient.from("profiles").insert({ id: data.user.id, fullname, phone, email });
+
+      document.getElementById("registerError").innerText = "";
+      document.getElementById("successMessage").innerText = "Account created! Please check your email to confirm.";
+      document.getElementById("successMessage").style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById("successMessage").style.display = "none";
+        showLogin();
+      }, 2000);
+      
+      setLoading(btn, false, "Create Account");
+    }
+
+    async function login() {
+      const email = document.getElementById("loginUser").value;
+      const password = document.getElementById("loginPass").value;
+      const btn = document.querySelector("#loginBox button");
+      setLoading(btn, true, "Login");
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        document.getElementById("loginError").innerText = error.message; 
+        setLoading(btn, false, "Login"); 
+        return;
+      }
+
+      setLoading(btn, false, "Login");
+      document.getElementById("loginError").innerText = "";
+      document.getElementById("successMessage").innerText = "Welcome! Login successful!";
+      document.getElementById("successMessage").style.display = "block";
+
+      setTimeout(() => {
+        window.top.location.href = HOME_PAGE;
+      }, 1000);
+    }
+
+    supabaseClient.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        const skip = localStorage.getItem('skip_auto_redirect');
+        if (skip) {
+          localStorage.removeItem('skip_auto_redirect');
+          return;
+        }
+        window.top.location.href = HOME_PAGE;
+      }
+    });
+  </script>
+</body>
+</html>
